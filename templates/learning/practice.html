@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Practice {{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }} - Shloka Learning{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@6"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Practice Header -->
+        <div class="bg-amber-600 text-white p-4">
+            <h1 class="text-2xl font-bold">Pronunciation Practice</h1>
+            <p>{{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }}</p>
+        </div>
+
+        <!-- Practice Content -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Reference Audio -->
+                <div>
+                    <h2 class="text-lg font-semibold mb-4">Reference Pronunciation</h2>
+                    <div class="shloka-text text-xl mb-4">{{ shloka.devanagari }}</div>
+                    <div id="reference-waveform" class="bg-gray-100 rounded mb-2"></div>
+                    <audio id="reference-audio" controls>
+                        <source src="{{ shloka.audio_path }}" type="audio/mpeg">
+                    </audio>
+                </div>
+
+                <!-- User Recording -->
+                <div>
+                    <h2 class="text-lg font-semibold mb-4">Your Pronunciation</h2>
+                    <div class="shloka-text text-xl mb-4">{{ shloka.devanagari }}</div>
+                    <div id="user-waveform" class="bg-gray-100 rounded mb-2"></div>
+                    <div class="flex space-x-2 mb-4">
+                        <button id="record-btn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded">
+                            <i class="fas fa-microphone mr-2"></i>Record
+                        </button>
+                        <button id="stop-btn" disabled class="bg-gray-500 text-white font-medium py-2 px-4 rounded">
+                            <i class="fas fa-stop mr-2"></i>Stop
+                        </button>
+                        <button id="play-btn" disabled class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
+                            <i class="fas fa-play mr-2"></i>Play
+                        </button>
+                    </div>
+                    <button id="analyze-btn" disabled class="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded">
+                        <i class="fas fa-chart-bar mr-2"></i>Analyze Pronunciation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div id="feedback-section" class="mt-8 hidden">
+                <h2 class="text-xl font-semibold mb-4">Pronunciation Feedback</h2>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="mb-4">
+                        <h3 class="font-medium mb-2">Accuracy Score</h3>
+                        <div class="flex items-center">
+                            <div class="pronunciation-meter w-full mr-4">
+                                <div id="score-bar" class="pronunciation-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="score-text" class="font-bold">0%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium mb-2">Feedback</h3>
+                        <p id="feedback-text" class="text-gray-700">Record and analyze your pronunciation to receive feedback.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/js/recorder.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize wavesurfer for reference audio
+    const referenceWaveform = WaveSurfer.create({
+        container: '#reference-waveform',
+        waveColor: '#d97706',
+        progressColor: '#92400e',
+        height: 100
+    });
+    referenceWaveform.load('{{ shloka.audio_path }}');
+
+    // Initialize wavesurfer for user recording
+    const userWaveform = WaveSurfer.create({
+        container: '#user-waveform',
+        waveColor: '#2563eb', 
+        progressColor: '#1d4ed8',
+        height: 100
+    });
+
+    // Connect audio elements
+    const referenceAudio = document.getElementById('reference-audio');
+    referenceWaveform.on('ready', () => {
+        referenceWaveform.setVolume(0.3);
+    });
+
+    // Setup recording functionality
+    initRecorder({
+        recordBtn: '#record-btn',
+        stopBtn: '#stop-btn',
+        playBtn: '#play-btn',
+        analyzeBtn: '#analyze-btn',
+        waveform: userWaveform,
+        onAnalysisComplete: (result) => {
+            document.getElementById('feedback-section').classList.remove('hidden');
+            document.getElementById('score-bar').style.width = `${result.score}%`;
+            document.getElementById('score-text').textContent = `${result.score}%`;
+            document.getElementById('feedback-text').textContent = result.feedback;
+        }
+    });
+});
+</script>
+{% endblock %}
