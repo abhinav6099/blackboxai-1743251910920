@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz: {{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }} - Shloka Learning{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Quiz Header -->
+        <div class="bg-amber-600 text-white p-4">
+            <h1 class="text-2xl font-bold">Shloka Quiz</h1>
+            <p>{{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }}</p>
+        </div>
+
+        <!-- Quiz Content -->
+        <div class="p-6">
+            <div id="quiz-container">
+                <!-- Questions will be loaded here by JavaScript -->
+                <div class="text-center py-8">
+                    <p class="text-gray-500">Loading quiz questions...</p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="hidden mt-8 bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Quiz Results</h2>
+                <div class="mb-4">
+                    <h3 class="font-medium">Your Score</h3>
+                    <div class="w-full bg-gray-200 rounded-full h-4 mt-2">
+                        <div id="score-bar" class="h-4 bg-green-500 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p id="score-text" class="text-sm text-gray-600 mt-1">0% correct</p>
+                </div>
+                <div>
+                    <h3 class="font-medium mb-2">Feedback</h3>
+                    <p id="feedback-text" class="text-gray-700"></p>
+                </div>
+                <div class="mt-6">
+                    <a href="/learn/{{ shloka.id }}" class="text-amber-600 hover:underline mr-4">
+                        <i class="fas fa-book mr-1"></i> Review Shloka
+                    </a>
+                    <a href="/learn/practice/{{ shloka.id }}" class="text-amber-600 hover:underline">
+                        <i class="fas fa-microphone mr-1"></i> Practice Pronunciation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Fetch quiz questions
+    fetch(`/learn/api/quiz?shloka_id={{ shloka.id }}`)
+        .then(response => response.json())
+        .then(questions => {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            
+            let currentQuestion = 0;
+            let score = 0;
+            
+            function showQuestion() {
+                if (currentQuestion >= questions.length) {
+                    showResults();
+                    return;
+                }
+                
+                const q = questions[currentQuestion];
+                const questionHtml = `
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4">${q.question}</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${q.options.map((option, i) => `
+                                <div class="quiz-option" data-correct="${option === q.correct_answer}">
+                                    <input type="radio" name="answer" id="option-${i}" class="hidden">
+                                    <label for="option-${i}" class="block p-4 cursor-pointer">
+                                        ${option}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <button id="next-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded">
+                        ${currentQuestion === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                    </button>
+                `;
+                
+                container.innerHTML = questionHtml;
+                
+                // Add event listeners
+                document.querySelectorAll('.quiz-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        document.querySelectorAll('.quiz-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        option.classList.add('selected');
+                        
+                        if (option.dataset.correct === 'true') {
+                            score++;
+                        }
+                    });
+                });
+                
+                document.getElementById('next-btn').addEventListener('click', () => {
+                    currentQuestion++;
+                    showQuestion();
+                });
+            }
+            
+            function showResults() {
+                const percent = Math.round((score / questions.length) * 100);
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('results-section').classList.remove('hidden');
+                document.getElementById('score-bar').style.width = `${percent}%`;
+                document.getElementById('score-text').textContent = `${percent}% correct (${score} of ${questions.length})`;
+                
+                let feedback = '';
+                if (percent >= 80) {
+                    feedback = 'Excellent! You have a strong understanding of this shloka.';
+                } else if (percent >= 50) {
+                    feedback = 'Good effort! Review the shloka to improve your understanding.';
+                } else {
+                    feedback = 'Keep practicing! Try reviewing the shloka and its meaning again.';
+                }
+                document.getElementById('feedback-text').textContent = feedback;
+            }
+            
+            showQuestion();
+        });
+});
+</script>
+{% endblock %}
