@@ -1,0 +1,38 @@
+/* Custom styles to complement Tailwind */
+@layer components {
+    .shloka-text {
+        font-family: 'Noto Sans Devanagari', sans-serif;
+        font-size: 1.5rem;
+        line-height: 2.5rem;
+    }
+
+    .pronunciation-meter {
+        @apply h-2 bg-gray-200 rounded-full overflow-hidden;
+    }
+    
+    .pronunciation-bar {
+        @apply h-full bg-green-500 transition-all duration-500;
+    }
+
+    .quiz-option {
+        @apply p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-amber-50;
+    }
+    
+    .quiz-option.correct {
+        @apply bg-green-100 border-green-500;
+    }
+    
+    .quiz-option.incorrect {
+        @apply bg-red-100 border-red-500;
+    }
+}
+
+/* Animation for practice feedback */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.feedback-pulse {
+    animation: pulse 1.5s infinite;
+}
