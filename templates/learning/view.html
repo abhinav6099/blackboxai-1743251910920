@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }} - Shloka Learning{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Shloka Header -->
+        <div class="bg-amber-600 text-white p-4">
+            <h1 class="text-2xl font-bold shloka-text">{{ shloka.devanagari }}</h1>
+            <p class="mt-2">{{ shloka.source }} {{ shloka.chapter }}:{{ shloka.verse_number }}</p>
+        </div>
+
+        <!-- Shloka Content -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Sanskrit Verse -->
+                <div class="md:col-span-1">
+                    <h2 class="text-lg font-semibold mb-2">Sanskrit</h2>
+                    <p class="shloka-text text-xl">{{ shloka.verse }}</p>
+                    <div class="mt-4">
+                        <audio controls class="w-full">
+                            <source src="{{ shloka.audio_path }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Translation -->
+                <div class="md:col-span-1">
+                    <h2 class="text-lg font-semibold mb-2">Translation</h2>
+                    <p class="text-gray-700">{{ shloka.translation }}</p>
+                </div>
+
+                <!-- Meaning and Context -->
+                <div class="md:col-span-1">
+                    <h2 class="text-lg font-semibold mb-2">Meaning</h2>
+                    <p class="text-gray-700 mb-4">{{ shloka.meaning }}</p>
+                    
+                    {% if shloka.context %}
+                    <h2 class="text-lg font-semibold mb-2">Context</h2>
+                    <p class="text-gray-700">{{ shloka.context }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex flex-wrap gap-4">
+                <a href="/learn/practice/{{ shloka.id }}" class="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded">
+                    <i class="fas fa-microphone mr-2"></i>Practice Pronunciation
+                </a>
+                <a href="/learn/quiz/{{ shloka.id }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                    <i class="fas fa-question-circle mr-2"></i>Take Quiz
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
